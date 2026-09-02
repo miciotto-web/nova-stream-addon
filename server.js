@@ -78,11 +78,11 @@ const server = http.createServer((req, res) => {
     const id = streamMatch[3];
     
     // Filtri Torrentio:
-    // - provider italiani e internazionali (esclusi tracker russi come rutor, kinozal)
-    // - lingua italiana prioritaria
-    // - ordinati per qualità + dimensione
-    const italianProviders = 'yts,eztv,rarbg,1337x,thepiratebay,kickasstorrents,torrentgalaxy,magnetdl,horriblesubs,nyaa';
-    const torrentioFilters = `providers=${italianProviders}|language=italian|sort=qualitysize`;
+    // - tutti i provider internazionali di qualità (esclusi tracker russi: rutor, rutracker)
+    // - ordinati per qualità + dimensione (4K in cima)
+    // Nota: rimosso language=italian perché filtrava via i risultati 4K non etichettati in ITA
+    const italianProviders = 'yts,eztv,rarbg,1337x,thepiratebay,kickasstorrents,torrentgalaxy,magnetdl,horriblesubs,nyaa,tokyotoshokan,animetosho';
+    const torrentioFilters = `providers=${italianProviders}|sort=qualitysize`;
 
     // Supporto per account Debrid (RealDebrid, TorBox, ecc.)
     let torrentioUrl = `https://torrentio.strem.fun/${torrentioFilters}/stream/${type}/${id}.json`;
