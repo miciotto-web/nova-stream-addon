@@ -58,7 +58,8 @@ function serveStaticFile(res, filePath) {
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  const pathname = url.parse(req.url).pathname || '/';
+  const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const pathname = parsedUrl.pathname || '/';
 
   if (pathname === '/health') return res.writeHead(200), res.end(JSON.stringify({ status: 'ok', v: '1.0.3' }));
   if (pathname === '/manifest.json') return res.writeHead(200), res.end(JSON.stringify(buildManifest({})));

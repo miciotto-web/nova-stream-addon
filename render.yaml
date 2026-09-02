@@ -1,4 +1,4 @@
-﻿services:
+services:
   - type: web
     name: nova-stream-addon
     runtime: node
@@ -9,6 +9,6 @@
       - key: PORT
         value: 7000
       - key: PUBLIC_BASE_URL
-        generateValue: false
+        value: https://nova-stream-addon.onrender.com
       - key: NODE_ENV
         value: production
