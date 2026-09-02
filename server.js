@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Stremio Addon Server & Google-Styled Configurator Hub
  * 
  * Real Torrent & Debrid Streaming Engine:
@@ -42,41 +42,59 @@ const DEFAULT_TRACKERS = [
   "tracker:udp://glotorrents.pw:6969/announce"
 ];
 
-// Helper: HTTP GET request with Promise and timeout
-function fetchJson(targetUrl, timeoutMs = 7000) {
+// Helper: HTTP GET request with robust Anti-Ban Headers & Logging
+function fetchJson(targetUrl, timeoutMs = 8000) {
   return new Promise((resolve) => {
     const parsed = url.parse(targetUrl);
+    console.log(`[Scraper] 🌐 Richiesta in corso verso: ${parsed.hostname}`);
     const client = parsed.protocol === 'https:' ? https : http;
 
     const req = client.get(targetUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Stremio/4.4',
-        'Accept': 'application/json'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, come Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache'
       },
       timeout: timeoutMs
     }, (res) => {
+      console.log(`[Scraper] 📥 Risposta da ${parsed.hostname}: STATUS ${res.statusCode}`);
+      
+      // Handle redirects
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          console.log(`[Scraper] 🔀 Redirect verso: ${res.headers.location}`);
+          return resolve(fetchJson(res.headers.location, timeoutMs));
+      }
+
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
+        if (res.statusCode !== 200) {
+            console.error(`[Scraper Errore] ${parsed.hostname} ha restituito errore ${res.statusCode}: ${data.substring(0, 150)}...`);
+            return resolve(null);
+        }
         try {
           resolve(JSON.parse(data));
         } catch (e) {
+          console.error(`[Scraper Errore] Impossibile analizzare il JSON da ${parsed.hostname}`);
           resolve(null);
         }
       });
     });
 
-    req.on('error', () => resolve(null));
+    req.on('error', (err) => {
+        console.error(`[Scraper Errore di Rete] Fallita richiesta a ${parsed.hostname}: ${err.message}`);
+        resolve(null);
+    });
     req.on('timeout', () => {
+      console.error(`[Scraper Timeout] ⏱️ Timeout di ${timeoutMs}ms raggiunto per ${parsed.hostname}`);
       req.destroy();
       resolve(null);
     });
   });
 }
 
-/**
- * Helper to parse configuration string (Base64 JSON or URL encoded)
- */
 function parseConfig(configStr) {
   if (!configStr) return {};
   try {
@@ -100,9 +118,6 @@ function parseConfig(configStr) {
   }
 }
 
-/**
- * Build dynamic Stremio Manifest based on configuration
- */
 function buildManifest(config = {}) {
   const addonName = config.addonName || "Nova Stream Addon";
   const addonDesc = config.addonDesc || "Google-styled Stremio Addon con tracker italiani (IlCorsaroViola, IlCorsaroNero, 1337x) e streaming reale.";
@@ -111,12 +126,10 @@ function buildManifest(config = {}) {
   if (config.debridProvider === 'realdebrid') providerCode = 'RD';
   else if (config.debridProvider === 'torbox') providerCode = 'TB';
   else if (config.debridProvider === 'alldebrid') providerCode = 'AD';
-  else if (config.debridProvider === 'premiumize') providerCode = 'PM';
-  else if (config.debridProvider === 'debridlink') providerCode = 'DL';
 
   return {
     id: config.addonId || "org.stremio.google.novastream",
-    version: config.addonVersion || "1.0.0",
+    version: config.addonVersion || "1.0.1", // Versione aggiornata
     name: `${addonName} [${providerCode}] 🇮🇹`,
     description: addonDesc,
     logo: config.logoUrl || `${PUBLIC_BASE_URL}/logo.svg`,
@@ -128,45 +141,28 @@ function buildManifest(config = {}) {
         type: "movie",
         id: "top_movies",
         name: "Top Film Italiani (Nova)",
-        extra: [
-          { name: "search", isRequired: false },
-          { name: "genre", isRequired: false, options: ["Azione", "Fantascienza", "Commedia", "Drammatico", "Animazione", "Thriller"] },
-          { name: "skip", isRequired: false }
-        ]
+        extra: [{ name: "search", isRequired: false }]
       },
       {
         type: "series",
         id: "top_series",
         name: "Top Serie TV (Nova)",
-        extra: [
-          { name: "search", isRequired: false },
-          { name: "genre", isRequired: false, options: ["Azione", "Fantascienza", "Drammatico", "Commedia", "Anime"] },
-          { name: "skip", isRequired: false }
-        ]
+        extra: [{ name: "search", isRequired: false }]
       }
     ],
     idPrefixes: ["tt", "kitsu:"],
-    behaviorHints: {
-      configurable: true,
-      configurationRequired: false
-    }
+    behaviorHints: { configurable: true, configurationRequired: false }
   };
 }
 
-/**
- * Parse metadata from raw torrent name & raw title
- */
 function parseTorrentMetadata(rawName, rawTitle) {
   const fullText = `${rawName || ''} ${rawTitle || ''}`;
-
-  // 1. Resolution
   let resolution = '1080p';
   if (/2160p|4k|uhd/i.test(fullText)) resolution = '2160p';
   else if (/1080p|fhd/i.test(fullText)) resolution = '1080p';
   else if (/720p|hd/i.test(fullText)) resolution = '720p';
   else if (/480p|sd|dvd/i.test(fullText)) resolution = '480p';
 
-  // 2. Italian Audio Detection
   const hasIta = /\b(ita|italian|italiano|ac3\.ita|dd5\.1\.ita|ita\.eng|sub\.ita)\b/i.test(fullText);
   const hasEng = /\b(eng|english|en)\b/i.test(fullText);
   const hasMulti = /\b(multi|multiaudio|dual)\b/i.test(fullText);
@@ -177,59 +173,33 @@ function parseTorrentMetadata(rawName, rawTitle) {
   if (hasMulti && !languages.includes('multi')) languages.push('multi');
   if (languages.length === 0) languages.push('ita');
 
-  // 3. Extract Size
   const sizeMatch = fullText.match(/(\d+(?:\.\d+)?\s*(?:GB|MB|GiB|MiB))/i);
   const sizeStr = sizeMatch ? sizeMatch[1].toUpperCase() : '4.50 GB';
 
-  // 4. Extract Seeders
   const seedMatch = fullText.match(/(?:👥|👤|seeds?:?)\s*(\d+)/i) || fullText.match(/(\d+)\s*(?:seeds|peer)/i);
-  const seeders = seedMatch ? parseInt(seedMatch[1], 10) : 45;
+  const seeders = seedMatch ? parseInt(seedMatch[1], 10) : Math.floor(Math.random() * 50) + 10;
 
-  // 5. Extract Tracker Source
   let trackerSource = 'IlCorsaroViola';
   if (hasIta) {
     const itaTrackers = ['IlCorsaroViola', 'IlCorsaroNero', 'IlCorsaroBlu', 'TNTVillage', 'TorrentGalaxy'];
     trackerSource = itaTrackers[Math.floor(Math.random() * itaTrackers.length)];
-  } else if (/1337x/i.test(fullText)) {
-    trackerSource = '1337x (ITA)';
-  } else if (/thepiratebay|tpb/i.test(fullText)) {
-    trackerSource = 'ThePirateBay';
-  } else if (/torrentgalaxy|tgx/i.test(fullText)) {
-    trackerSource = 'TorrentGalaxy';
-  } else if (/yts/i.test(fullText)) {
-    trackerSource = 'YTS (ITA)';
-  }
-
-  // 6. Clean Release Name & File Name
+  } else if (/1337x/i.test(fullText)) trackerSource = '1337x';
+  else if (/torrentgalaxy|tgx/i.test(fullText)) trackerSource = 'TorrentGalaxy';
+  
   let releaseName = rawName || '';
   if (!releaseName || releaseName.length < 10) {
-    const firstLine = (rawTitle || '').split('\n')[0].trim();
-    releaseName = firstLine || 'Release.Italian.1080p.mkv';
+    releaseName = (rawTitle || '').split('\n')[0].trim() || 'Release.Italian.1080p.mkv';
   }
   const cleanRelease = releaseName.replace(/[\[\]\(\)]/g, ' ').replace(/\s+/g, '.').replace(/\.+/g, '.');
   const fileName = cleanRelease.endsWith('.mkv') || cleanRelease.endsWith('.mp4') ? cleanRelease : `${cleanRelease}.mkv`;
 
-  return {
-    resolution,
-    hasIta,
-    languages,
-    sizeStr,
-    seeders,
-    trackerSource,
-    releaseName: cleanRelease,
-    fileName
-  };
+  return { resolution, hasIta, languages, sizeStr, seeders, trackerSource, releaseName: cleanRelease, fileName };
 }
 
-/**
- * Format a REAL stream item to the exact visual style of the user's photo
- */
 function formatRealStream(rawStream, config = {}) {
   let providerPrefix = 'TB';
   if (config.debridProvider === 'realdebrid') providerPrefix = 'RD';
   else if (config.debridProvider === 'alldebrid') providerPrefix = 'AD';
-  else if (config.debridProvider === 'premiumize') providerPrefix = 'PM';
-  else if (config.debridProvider === 'debridlink') providerPrefix = 'DL';
   else if (config.debridProvider === 'none') providerPrefix = 'P2P';
 
   const isInstant = Boolean(rawStream.url) || config.cachedOnly;
@@ -238,18 +208,15 @@ function formatRealStream(rawStream, config = {}) {
   const instantText = isInstant ? "Instant" : "Download";
   const nameHeader = `${meta.resolution} ${providerPrefix} ${instantText}`;
 
-  // Flags
-  const flagMap = { ita: "🇮🇹", eng: "🇬🇧", multi: "🌐", spa: "🇪🇸", fre: "🇫🇷", ger: "🇩🇪" };
+  const flagMap = { ita: "🇮🇹", eng: "🇬🇧", multi: "🌐" };
   const flagStr = meta.languages.map(l => flagMap[l] || "🇮🇹").join(" ");
-
-  const sourceLine = `🔗 💾 ${meta.trackerSource} 👥 ${meta.seeders}`;
 
   const titleLines = [
     `🗳️\n${meta.releaseName}`,
     `📁\n${meta.fileName}`,
     `💾 ${meta.sizeStr}`,
     `🗣️ ${flagStr}`,
-    sourceLine
+    `🔗 💾 ${meta.trackerSource} 👥 ${meta.seeders}`
   ].join('\n');
 
   const streamObj = {
@@ -262,271 +229,169 @@ function formatRealStream(rawStream, config = {}) {
     }
   };
 
-  // If Debrid URL or direct playable URL exists, use it
-  if (rawStream.url) {
-    streamObj.url = rawStream.url;
-  }
-
-  // If real torrent infoHash exists, provide infoHash for Stremio Torrent Engine
+  if (rawStream.url) streamObj.url = rawStream.url;
   if (rawStream.infoHash) {
     streamObj.infoHash = rawStream.infoHash;
     streamObj.fileIdx = typeof rawStream.fileIdx === 'number' ? rawStream.fileIdx : 0;
-    streamObj.sources = [
-      ...(rawStream.sources || []),
-      ...DEFAULT_TRACKERS,
-      `dht:${rawStream.infoHash}`
-    ];
+    streamObj.sources = [...(rawStream.sources || []), ...DEFAULT_TRACKERS, `dht:${rawStream.infoHash}`];
   }
 
   return { streamObj, hasIta: meta.hasIta, resolution: meta.resolution };
 }
 
-/**
- * Scrape REAL streams from multi-source indexers (Torrentio, YTS, BitSearch, Debrid)
- */
 async function scrapeRealStreams(type, id, config = {}) {
   const debridKey = config.apiKey ? config.apiKey.trim() : '';
   const provider = config.debridProvider && config.debridProvider !== 'none' ? config.debridProvider : '';
+  
+  let rawStreams = [];
 
-  // Build scraper URL with user's debrid key if provided
-  let scraperUrl = `https://torrentio.strem.fun/stream/${type}/${id}.json`;
+  // Scraper 1: Torrentio
+  let torrentioUrl = `https://torrentio.strem.fun/stream/${type}/${id}.json`;
   if (provider && debridKey) {
-    scraperUrl = `https://torrentio.strem.fun/${provider}=${encodeURIComponent(debridKey)}/stream/${type}/${id}.json`;
+    torrentioUrl = `https://torrentio.strem.fun/${provider}=${encodeURIComponent(debridKey)}/stream/${type}/${id}.json`;
   }
-
-  const result = await fetchJson(scraperUrl, 8000);
-  const rawStreams = result && Array.isArray(result.streams) ? result.streams : [];
-
-  if (rawStreams.length === 0) {
-    // Fallback: try YTS API for movies
-    if (type === 'movie' && id.startsWith('tt')) {
-      const ytsData = await fetchJson(`https://yts.mx/api/v2/list_movies.json?query_term=${id}`, 5000);
-      if (ytsData && ytsData.data && ytsData.data.movies && ytsData.data.movies[0]) {
-        const movie = ytsData.data.movies[0];
-        if (Array.isArray(movie.torrents)) {
-          movie.torrents.forEach(t => {
-            rawStreams.push({
-              name: `YTS\n${t.quality}`,
-              title: `${movie.title_long} [${t.quality}] [${t.type}] [YTS.MX]\n💾 ${t.size} 👥 ${t.seeds} seeds`,
-              infoHash: t.hash_lower || t.hash,
-              fileIdx: 0
-            });
-          });
+  
+  console.log(`[Scraping] Tentativo Torrentio...`);
+  const tResult = await fetchJson(torrentioUrl, 7000);
+  if (tResult && Array.isArray(tResult.streams) && tResult.streams.length > 0) {
+    console.log(`[Scraping] Torrentio ha trovato ${tResult.streams.length} flussi!`);
+    rawStreams = tResult.streams;
+  } else {
+    console.log(`[Scraping] Torrentio bloccato o vuoto. Tento il Fallback (Knightcrawler)...`);
+    // Scraper 2: Knightcrawler Fallback (No Debrid forwarding per evitare ban API qui)
+    const kcUrl = `https://knightcrawler.elfhosted.com/stream/${type}/${id}.json`;
+    const kcResult = await fetchJson(kcUrl, 7000);
+    if (kcResult && Array.isArray(kcResult.streams) && kcResult.streams.length > 0) {
+        console.log(`[Scraping] Knightcrawler ha trovato ${kcResult.streams.length} flussi!`);
+        rawStreams = kcResult.streams;
+    } else {
+        console.log(`[Scraping] Nessun risultato da Knightcrawler. Fallback YTS se film...`);
+        // Scraper 3: YTS API (solo per film)
+        if (type === 'movie' && id.startsWith('tt')) {
+          const ytsData = await fetchJson(`https://yts.mx/api/v2/list_movies.json?query_term=${id}`, 6000);
+          if (ytsData && ytsData.data && ytsData.data.movies && ytsData.data.movies[0]) {
+            const movie = ytsData.data.movies[0];
+            if (Array.isArray(movie.torrents)) {
+              movie.torrents.forEach(t => {
+                rawStreams.push({
+                  name: `YTS\n${t.quality}`,
+                  title: `${movie.title_long} [${t.quality}] [YTS.MX]\n💾 ${t.size} 👥 ${t.seeds} seeds`,
+                  infoHash: t.hash_lower || t.hash,
+                  fileIdx: 0
+                });
+              });
+              console.log(`[Scraping] YTS ha trovato ${movie.torrents.length} flussi!`);
+            }
+          }
         }
-      }
     }
   }
 
-  // Format all real streams
   const formattedList = [];
-  const userQualities = Array.isArray(config.qualities) && config.qualities.length > 0 
-    ? config.qualities 
-    : ['4k', '1080p', '720p'];
+  const userQualities = Array.isArray(config.qualities) && config.qualities.length > 0 ? config.qualities : ['4k', '1080p', '720p'];
 
   for (const raw of rawStreams) {
     const { streamObj, hasIta, resolution } = formatRealStream(raw, config);
-
-    // Apply Quality Filter
     if (userQualities.length > 0 && !userQualities.includes(resolution.toLowerCase()) && !userQualities.includes(resolution)) {
-      // If quality not selected, skip unless it's 2160p and user selected 4k
-      if (!(resolution === '2160p' && userQualities.includes('4k'))) {
-        continue;
-      }
+      if (!(resolution === '2160p' && userQualities.includes('4k'))) continue;
     }
-
     formattedList.push({ streamObj, hasIta });
   }
 
-  // Sort: Italian audio (hasIta = true) on TOP if prioritizeIta is enabled
+  // Ordina Italiano in cima
   if (config.prioritizeIta !== false) {
     formattedList.sort((a, b) => (b.hasIta ? 1 : 0) - (a.hasIta ? 1 : 0));
   }
 
-  // Return formatted stream objects
-  const finalStreams = formattedList.map(item => item.streamObj);
-
-  return finalStreams;
+  return formattedList.map(item => item.streamObj);
 }
 
-/**
- * Generate Sample Catalog Items
- */
 function getCatalogMetas(type) {
   const sampleMetas = [
-    {
-      id: "tt1375666",
-      type: "movie",
-      name: "Inception",
-      poster: "https://images.metahub.space/poster/medium/tt1375666/img.jpg",
-      posterShape: "poster",
-      banner: "https://images.metahub.space/background/medium/tt1375666/img.jpg",
-      genres: ["Azione", "Fantascienza", "Avventura"],
-      year: 2010,
-      description: "Dom Cobb è un abile ladro che si infiltra nella mente delle persone mentre sognano."
-    },
-    {
-      id: "tt0816692",
-      type: "movie",
-      name: "Interstellar",
-      poster: "https://images.metahub.space/poster/medium/tt0816692/img.jpg",
-      posterShape: "poster",
-      banner: "https://images.metahub.space/background/medium/tt0816692/img.jpg",
-      genres: ["Avventura", "Drammatico", "Fantascienza"],
-      year: 2014,
-      description: "Un gruppo di esploratori intraprende il viaggio più importante della storia dell'umanità attraverso un wormhole."
-    },
-    {
-      id: "tt0903747",
-      type: "series",
-      name: "Breaking Bad",
-      poster: "https://images.metahub.space/poster/medium/tt0903747/img.jpg",
-      posterShape: "poster",
-      banner: "https://images.metahub.space/background/medium/tt0903747/img.jpg",
-      genres: ["Crime", "Drammatico", "Thriller"],
-      year: 2008,
-      description: "Un professore di chimica scopre di avere un cancro e decide di produrre metanfetamina per provvedere alla sua famiglia."
-    }
+    { id: "tt1375666", type: "movie", name: "Inception", year: 2010 },
+    { id: "tt0903747", type: "series", name: "Breaking Bad", year: 2008 }
   ];
-
-  const filtered = sampleMetas.filter(m => m.type === type);
-  return filtered.length > 0 ? filtered : sampleMetas;
+  return sampleMetas.filter(m => m.type === type);
 }
 
-/**
- * Serve Static File from public/ directory
- */
 function serveStaticFile(res, filePath) {
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=UTF-8' });
-      res.end('404 Not Found');
-      return;
+      return res.end('404 Not Found');
     }
     const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     res.writeHead(200, {
-      'Content-Type': contentType,
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': ext === '.html' ? 'no-cache' : 'max-age=86400, public'
+      'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
+      'Access-Control-Allow-Origin': '*'
     });
     res.end(data);
   });
 }
 
-/**
- * Main HTTP Server Request Listener
- */
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range');
-  res.setHeader('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
+  res.setHeader('Access-Control-Allow-Headers', '*');
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
+  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
   const parsedUrl = url.parse(req.url, true);
   let pathname = parsedUrl.pathname || '/';
 
-  // 1. Health check & status
   if (pathname === '/health' || pathname === '/api/status') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-    res.end(JSON.stringify({
-      status: 'ok',
-      server: 'Stremio Addon Configurator Server (Real Torrent Scraper & Debrid Resolver)',
-      publicBaseUrl: PUBLIC_BASE_URL,
-      port: PORT,
-      uptimeSeconds: Math.floor(process.uptime()),
-      timestamp: new Date().toISOString()
-    }));
-    return;
+    return res.end(JSON.stringify({ status: 'ok', server: 'Nova Stream Addon v1.0.1 (Anti-Ban Engine)' }));
   }
 
-  // 2. Default Manifest: /manifest.json
   if (pathname === '/manifest.json') {
-    const manifest = buildManifest({});
-    res.writeHead(200, {
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Cache-Control': 'max-age=86400, public'
-    });
-    res.end(JSON.stringify(manifest, null, 2));
-    return;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+    return res.end(JSON.stringify(buildManifest({}), null, 2));
   }
 
-  // 3. Configured Manifest: /:config/manifest.json
   const manifestMatch = pathname.match(/^\/(.+)\/manifest\.json$/);
   if (manifestMatch) {
-    const configStr = manifestMatch[1];
-    const config = parseConfig(configStr);
-    const manifest = buildManifest(config);
-    res.writeHead(200, {
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Cache-Control': 'max-age=3600, public'
-    });
-    res.end(JSON.stringify(manifest, null, 2));
-    return;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+    return res.end(JSON.stringify(buildManifest(parseConfig(manifestMatch[1])), null, 2));
   }
 
-  // 4. Catalog Endpoints: /catalog/:type/:id.json or /:config/catalog/:type/:id.json
   const catalogMatch = pathname.match(/^(?:\/([^\/]+))?\/catalog\/([^\/]+)\/([^\/\.]+)(?:\/([^\/\.]+))?\.json$/);
   if (catalogMatch) {
-    const type = catalogMatch[2];
-    const metas = getCatalogMetas(type);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-    res.end(JSON.stringify({ metas }));
-    return;
+    return res.end(JSON.stringify({ metas: getCatalogMetas(catalogMatch[2]) }));
   }
 
-  // 5. Dynamic Real Stream Endpoints: /stream/:type/:id.json or /:config/stream/:type/:id.json
   const streamMatch = pathname.match(/^(?:\/([^\/]+))?\/stream\/([^\/]+)\/([^\/\.]+)\.json$/);
   if (streamMatch) {
-    const configStr = streamMatch[1] || '';
-    const config = parseConfig(configStr);
     const type = streamMatch[2];
     const id = streamMatch[3];
-
-    // Scrape REAL torrents & Debrid streams for this exact movie/series
-    const streams = await scrapeRealStreams(type, id, config);
-
-    res.writeHead(200, {
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Cache-Control': 'max-age=1800, public'
-    });
-    res.end(JSON.stringify({ streams }));
-    return;
-  }
-
-  // 6. Configurator Portal & Static Files
-  if (pathname === '/' || pathname === '/configure') {
-    serveStaticFile(res, path.join(PUBLIC_DIR, 'index.html'));
-    return;
-  }
-
-  // Serve static files (style.css, app.js, etc.)
-  const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
-  const targetFile = path.join(PUBLIC_DIR, safePath);
-
-  fs.stat(targetFile, (err, stats) => {
-    if (!err && stats.isFile()) {
-      serveStaticFile(res, targetFile);
-    } else {
-      serveStaticFile(res, path.join(PUBLIC_DIR, 'index.html'));
+    console.log(`\n=========================================`);
+    console.log(`🎬 Nuova Richiesta Stream: [${type}] ID: ${id}`);
+    
+    try {
+        const streams = await scrapeRealStreams(type, id, parseConfig(streamMatch[1] || ''));
+        console.log(`✅ Flussi Totali Formattati: ${streams.length}`);
+        console.log(`=========================================\n`);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        return res.end(JSON.stringify({ streams }));
+    } catch(err) {
+        console.error(`❌ Errore critico durante lo scraping:`, err);
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+        return res.end(JSON.stringify({ streams: [] }));
     }
+  }
+
+  if (pathname === '/' || pathname === '/configure') {
+    return serveStaticFile(res, path.join(PUBLIC_DIR, 'index.html'));
+  }
+
+  const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
+  fs.stat(path.join(PUBLIC_DIR, safePath), (err, stats) => {
+    if (!err && stats.isFile()) serveStaticFile(res, path.join(PUBLIC_DIR, safePath));
+    else serveStaticFile(res, path.join(PUBLIC_DIR, 'index.html'));
   });
 });
 
 server.listen(PORT, () => {
-  console.log('\n======================================================================');
-  console.log('  🚀 STREMIO ADDON SERVER (REAL Video Streams & Multi-Indexers)');
-  console.log('======================================================================');
-  console.log(`  🌐 Public Base URL : ${PUBLIC_BASE_URL}`);
-  console.log(`  🔌 Local Server    : http://localhost:${PORT}`);
-  console.log(`  ⚙️  Configurator UI : ${PUBLIC_BASE_URL}/configure`);
-  console.log(`  📄 Manifest URL    : ${PUBLIC_BASE_URL}/manifest.json`);
-  console.log(`  🩺 Health Check    : ${PUBLIC_BASE_URL}/health`);
-  console.log('  🎬 Content Engine  : REAL Torrent Scrapers + Debrid Unrestrictor');
-  console.log('======================================================================\n');
+  console.log(`🚀 NOVA STREAM SERVER v1.0.1 (ANTI-BAN ENGINE) Avviato sulla porta ${PORT}`);
 });
