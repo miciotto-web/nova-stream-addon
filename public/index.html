@@ -554,60 +554,6 @@
 
     </div>
 
-    <!-- Quick Commands & Deployment Section -->
-    <section class="g-card deploy-guide-card mt-4">
-      <div class="g-card-header">
-        <div class="g-card-icon blue">
-          <span class="material-symbols-rounded">terminal</span>
-        </div>
-        <div>
-          <h3 class="g-card-title">Avvio Rapido & Comandi Terminale</h3>
-          <p class="g-card-desc">Istruzioni per eseguire e distribuire l'addon nel tuo ambiente</p>
-        </div>
-      </div>
-      <div class="g-card-body">
-        <div class="terminal-grid">
-          
-          <!-- Local Start Box -->
-          <div class="terminal-box">
-            <div class="terminal-box-header">
-              <span class="terminal-tag local">LOCALE</span>
-              <span>Esecuzione con Node.js & npm</span>
-              <button class="copy-cmd-btn" data-copy="npm install&#10;PUBLIC_BASE_URL=http://localhost:7000 npm start" title="Copia comandi">
-                <span class="material-symbols-rounded">content_copy</span>
-              </button>
-            </div>
-            <pre class="terminal-code"><code><span class="comment"># 1. Installa le dipendenze</span>
-npm install
-
-<span class="comment"># 2. Avvia il server addon (Linux / macOS / PowerShell)</span>
-PUBLIC_BASE_URL=http://localhost:7000 npm start
-
-<span class="comment"># Oppure su Windows CMD:</span>
-set PUBLIC_BASE_URL=http://localhost:7000 && npm start</code></pre>
-          </div>
-
-          <!-- Cloud Deploy Box -->
-          <div class="terminal-box">
-            <div class="terminal-box-header">
-              <span class="terminal-tag cloud">CLOUD DEPLOY</span>
-              <span>Distribuzione su Render / Railway / Docker</span>
-              <button class="copy-cmd-btn" data-copy="docker build -t stremio-addon .&#10;docker run -p 7000:7000 -e PUBLIC_BASE_URL=https://tuo-dominio.com stremio-addon" title="Copia comandi">
-                <span class="material-symbols-rounded">content_copy</span>
-              </button>
-            </div>
-            <pre class="terminal-code"><code><span class="comment"># Variabili d'ambiente richieste per Cloud:</span>
-PORT=7000
-PUBLIC_BASE_URL=https://tuo-addon.onrender.com
-
-<span class="comment"># Build & Run con Docker:</span>
-docker build -t stremio-addon .
-docker run -p 7000:7000 -e PUBLIC_BASE_URL=https://tuo-dominio.com stremio-addon</code></pre>
-          </div>
-
-        </div>
-      </div>
-    </section>
 
   </main>
 
