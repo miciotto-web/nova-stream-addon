@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Stremio Addon Server
  * Redirect Mode Engine (Bypass Cloudflare Server Blocks)
  */
@@ -30,7 +30,7 @@ function buildManifest(config = {}) {
     version: "1.0.3",
     name: `${config.addonName || "Nova Stream Addon"} (Online)`,
     description: "Motore Reindirizzamento Diretto (Bypass Cloudflare)",
-    logo: config.logoUrl || `${PUBLIC_BASE_URL}/logo.svg`,
+    logo: config.logoUrl || `${PUBLIC_BASE_URL}/logo.jpg`,
     resources: ["catalog", "stream"],
     types: ["movie", "series"],
     catalogs: [
