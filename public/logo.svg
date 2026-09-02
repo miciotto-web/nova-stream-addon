@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4285F4"/>
+      <stop offset="50%" style="stop-color:#7B1FA2"/>
+      <stop offset="100%" style="stop-color:#E91E63"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.3)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="120" fill="url(#shine)"/>
+  <!-- Outer ring -->
+  <circle cx="128" cy="128" r="120" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="4"/>
+  <!-- Play Triangle (Stremio-style) -->
+  <polygon points="100,72 100,184 196,128" fill="white" opacity="0.95"/>
+  <!-- Small Italian flag stripe at bottom -->
+  <rect x="78" y="200" width="33" height="8" rx="2" fill="#009246"/>
+  <rect x="111" y="200" width="34" height="8" fill="#FFFFFF"/>
+  <rect x="145" y="200" width="33" height="8" rx="2" fill="#CE2B37"/>
+  <!-- "N" letter top-left badge -->
+  <circle cx="56" cy="56" r="28" fill="rgba(0,0,0,0.4)"/>
+  <text x="56" y="65" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="32" fill="white">N</text>
+</svg>

@@ -1,0 +1,14 @@
+﻿services:
+  - type: web
+    name: nova-stream-addon
+    runtime: node
+    plan: free
+    buildCommand: echo "Zero dependencies - no build needed"
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 7000
+      - key: PUBLIC_BASE_URL
+        generateValue: false
+      - key: NODE_ENV
+        value: production

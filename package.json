@@ -1,0 +1,22 @@
+{
+  "name": "nova-stream-addon",
+  "version": "1.0.0",
+  "description": "Stremio Addon con tracker italiani, scraper torrent reale e Debrid resolver",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "stremio",
+    "stremio-addon",
+    "torrent",
+    "italian",
+    "debrid"
+  ],
+  "author": "",
+  "license": "MIT"
+}

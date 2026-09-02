@@ -1,0 +1,4 @@
+﻿node_modules/
+.env
+*.log
+gen_logo.js

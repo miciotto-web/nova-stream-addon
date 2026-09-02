@@ -1,0 +1,648 @@
+﻿<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stremio Addon Portal & Configurator | Google Style & Italian Trackers</title>
+  <meta name="description" content="Configura il tuo addon Stremio con tracker italiani (IlCorsaroViola, IlCorsaroNero, 1337x, TGx), supporto Debrid, filtri 4K/HDR e formattazione stile Comet.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Header / Google Style Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="google-dots" title="Stremio Addon Configurator">
+          <span class="dot blue"></span>
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Stremio <span>Portal</span></h1>
+          <span class="brand-badge">🇮🇹 Tracker ITA Edition</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Server Status Indicator -->
+        <div class="server-status-pill" id="serverStatusPill" title="Stato del server addon">
+          <span class="status-pulse" id="statusPulse"></span>
+          <span class="status-label" id="statusLabel">Controllo server...</span>
+          <span class="ping-badge" id="pingBadge">-- ms</span>
+        </div>
+
+        <!-- Terminal Guide Modal Button -->
+        <button class="icon-button" id="btnHelp" title="Guida comandi e deploy" aria-label="Guida comandi">
+          <span class="material-symbols-rounded">terminal</span>
+        </button>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambia tema (Chiaro / Scuro)" aria-label="Cambia tema">
+          <span class="material-symbols-rounded theme-icon" id="themeIcon">light_mode</span>
+          <span class="theme-text" id="themeText">Chiaro</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+
+    <!-- Hero / Welcome Banner -->
+    <section class="hero-banner">
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="material-symbols-rounded">auto_awesome</span>
+          Google Material 3 & Tracker Italiani
+        </div>
+        <h2 class="hero-heading">Configura il tuo Addon Stremio</h2>
+        <p class="hero-subheading">
+          Indicizza i migliori siti torrent italiani (<strong>IlCorsaroViola, IlCorsaroNero, 1337x ITA, TGx</strong>), connetti il tuo account Debrid (TorBox, RealDebrid, AllDebrid) e genera flussi formattati fedelmente come nel lettore Stremio.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="btnQuickInstallHero">
+          <span class="material-symbols-rounded">play_circle</span>
+          Installa su Stremio
+        </button>
+        <button class="btn btn-tonal" id="btnScrollConfig">
+          <span class="material-symbols-rounded">tune</span>
+          Personalizza Opzioni
+        </button>
+      </div>
+    </section>
+
+    <!-- Layout Grid (Left: Config Controls, Right: Live Preview & Install) -->
+    <div class="content-grid" id="configSection">
+
+      <!-- LEFT COLUMN: Config Cards -->
+      <div class="config-column">
+
+        <!-- Card 1: Server URL & Network -->
+        <div class="g-card">
+          <div class="g-card-header">
+            <div class="g-card-icon blue">
+              <span class="material-symbols-rounded">dns</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">1. Server & Indirizzo Base (Public URL)</h3>
+              <p class="g-card-desc">Definisci l'endpoint pubblico o locale dove è in esecuzione il tuo server addon</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <div class="input-group">
+              <label for="baseUrlInput" class="input-label">PUBLIC_BASE_URL</label>
+              <div class="input-with-button">
+                <div class="input-wrapper">
+                  <span class="material-symbols-rounded input-prefix-icon">link</span>
+                  <input type="url" id="baseUrlInput" class="text-input" placeholder="http://localhost:7000" value="http://localhost:7000">
+                </div>
+                <button class="btn btn-outline" id="btnDetectUrl" title="Rileva URL dal browser corrente">
+                  <span class="material-symbols-rounded">my_location</span>
+                  Rileva
+                </button>
+                <button class="btn btn-outline" id="btnTestPing" title="Testa la connessione al server">
+                  <span class="material-symbols-rounded">refresh</span>
+                  Test Ping
+                </button>
+              </div>
+              <div class="input-hint">
+                💡 Per l'avvio locale usa: <code>PUBLIC_BASE_URL=http://localhost:7000 npm start</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Italian & International Trackers (NEW!) -->
+        <div class="g-card">
+          <div class="g-card-header">
+            <div class="g-card-icon red">
+              <span class="material-symbols-rounded">travel_explore</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">2. 🇮🇹 Siti Torrent Italiani & Fonti</h3>
+              <p class="g-card-desc">Seleziona i motori di ricerca e tracker per contenuti doppiati o sottotitolati in Italiano</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <label class="input-label">Tracker Italiani Nativi</label>
+            <div class="trackers-chips" id="trackersChips">
+              <button type="button" class="tracker-chip active" data-tracker="ilcorsaroviola">
+                <span class="tracker-badge-dot viola"></span>
+                <strong>IlCorsaroViola</strong> 🧲 🇮🇹
+              </button>
+              <button type="button" class="tracker-chip active" data-tracker="ilcorsaronero">
+                <span class="tracker-badge-dot nero"></span>
+                <strong>IlCorsaroNero</strong> 🧲 🇮🇹
+              </button>
+              <button type="button" class="tracker-chip active" data-tracker="ilcorsaroblu">
+                <span class="tracker-badge-dot blu"></span>
+                <strong>IlCorsaroBlu</strong> 🧲 🇮🇹
+              </button>
+              <button type="button" class="tracker-chip active" data-tracker="tntvillage">
+                <span class="tracker-badge-dot tnt"></span>
+                <strong>TNTVillage Archive</strong> 🧲 🇮🇹
+              </button>
+              <button type="button" class="tracker-chip" data-tracker="torrentjunkies">
+                <span class="tracker-badge-dot tj"></span>
+                <strong>TorrentJunkies ITA</strong> 🧲 🇮🇹
+              </button>
+            </div>
+
+            <label class="input-label mt-3">Tracker Internazionali (Filtro Release ITA / Multi)</label>
+            <div class="trackers-chips">
+              <button type="button" class="tracker-chip active" data-tracker="1337x">
+                <span class="tracker-badge-dot int"></span>
+                <strong>1337x</strong> (Sezione ITA)
+              </button>
+              <button type="button" class="tracker-chip active" data-tracker="torrentgalaxy">
+                <span class="tracker-badge-dot int"></span>
+                <strong>TorrentGalaxy</strong> (TGx ITA)
+              </button>
+              <button type="button" class="tracker-chip" data-tracker="bitsearch">
+                <span class="tracker-badge-dot int"></span>
+                <strong>BitSearch</strong> (ITA)
+              </button>
+              <button type="button" class="tracker-chip" data-tracker="thepiratebay">
+                <span class="tracker-badge-dot int"></span>
+                <strong>ThePirateBay</strong> (ITA)
+              </button>
+            </div>
+
+            <div class="checkbox-group mt-3">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkStrictIta" checked>
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">
+                  <strong>Filtro rigido lingua italiana</strong>
+                  <span class="sublabel">Scarta automaticamente release che non contengono audio o sottotitoli in Italiano</span>
+                </span>
+              </label>
+            </div>
+
+            <!-- Optional Prowlarr/Jackett Integration -->
+            <div class="prowlarr-box mt-3">
+              <div class="prowlarr-toggle-header" id="btnToggleProwlarr">
+                <span class="material-symbols-rounded">tune</span>
+                <span>Integrazione Prowlarr / Jackett / Torznab (Opzionale)</span>
+                <span class="material-symbols-rounded chevron" id="prowlarrChevron">expand_more</span>
+              </div>
+              <div class="prowlarr-content" id="prowlarrContent" style="display: none;">
+                <div class="input-group mt-2">
+                  <label for="prowlarrUrl" class="input-label">URL Prowlarr / Jackett</label>
+                  <input type="url" id="prowlarrUrl" class="text-input" placeholder="http://localhost:9696">
+                </div>
+                <div class="input-group mt-2">
+                  <label for="prowlarrKey" class="input-label">API Key</label>
+                  <input type="password" id="prowlarrKey" class="text-input" placeholder="Inserisci la chiave API Torznab">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Card 3: Debrid Provider -->
+        <div class="g-card">
+          <div class="g-card-header">
+            <div class="g-card-icon yellow">
+              <span class="material-symbols-rounded">bolt</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">3. Provider Debrid & Cache Streaming</h3>
+              <p class="g-card-desc">Sblocca link ultra-veloci senza buffering collegando il tuo account Debrid</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <label class="input-label">Seleziona Provider Debrid</label>
+            <div class="provider-chips" id="providerChips">
+              <button type="button" class="chip active" data-provider="torbox">
+                <span class="chip-logo tb">TB</span>
+                TorBox (Instant)
+              </button>
+              <button type="button" class="chip" data-provider="realdebrid">
+                <span class="chip-logo rd">RD</span>
+                Real-Debrid
+              </button>
+              <button type="button" class="chip" data-provider="alldebrid">
+                <span class="chip-logo ad">AD</span>
+                AllDebrid
+              </button>
+              <button type="button" class="chip" data-provider="premiumize">
+                <span class="chip-logo pm">PM</span>
+                Premiumize
+              </button>
+              <button type="button" class="chip" data-provider="debridlink">
+                <span class="chip-logo dl">DL</span>
+                Debrid-Link
+              </button>
+              <button type="button" class="chip" data-provider="none">
+                <span class="chip-logo p2p">P2P</span>
+                Nessuno (P2P Diretto)
+              </button>
+            </div>
+
+            <!-- API Key Input Field -->
+            <div class="input-group mt-3" id="apiKeySection">
+              <div class="label-with-link">
+                <label for="apiKeyInput" class="input-label" id="apiKeyLabel">API Token TorBox</label>
+                <a href="https://torbox.app/settings" target="_blank" rel="noopener noreferrer" class="helper-link" id="apiKeyLink">
+                  Ottieni API Key <span class="material-symbols-rounded">open_in_new</span>
+                </a>
+              </div>
+              <div class="input-wrapper">
+                <span class="material-symbols-rounded input-prefix-icon">key</span>
+                <input type="password" id="apiKeyInput" class="text-input" placeholder="Inserisci qui il tuo token / API Key">
+                <button type="button" class="input-suffix-btn" id="btnToggleApiKey" title="Mostra/Nascondi API Key">
+                  <span class="material-symbols-rounded" id="toggleApiKeyIcon">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="checkbox-group mt-3">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkCachedOnly" checked>
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">
+                  <strong>Mostra solo flussi in cache istantanea (Instant Stream)</strong>
+                  <span class="sublabel">Filtra via i torrent che richiedono download preventivo sul cloud</span>
+                </span>
+              </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkShowP2PFallback">
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">
+                  <strong>Includi fallback P2P</strong>
+                  <span class="sublabel">Mostra flussi torrent diretti se nessun link Debrid è disponibile</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Video Quality & Filters -->
+        <div class="g-card">
+          <div class="g-card-header">
+            <div class="g-card-icon green">
+              <span class="material-symbols-rounded">high_quality</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">4. Risoluzioni & Qualità Video</h3>
+              <p class="g-card-desc">Scegli le risoluzioni ammesse e i formati supportati dal tuo televisore/dispositivo</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <label class="input-label">Risoluzioni Abilitate</label>
+            <div class="quality-grid">
+              <label class="quality-card active">
+                <input type="checkbox" name="quality" value="4k" checked>
+                <div class="quality-content">
+                  <span class="badge blue">2160p 4K UHD</span>
+                  <span class="quality-desc">Ultra High Definition</span>
+                </div>
+              </label>
+              <label class="quality-card active">
+                <input type="checkbox" name="quality" value="1080p" checked>
+                <div class="quality-content">
+                  <span class="badge green">1080p FHD</span>
+                  <span class="quality-desc">Full High Definition</span>
+                </div>
+              </label>
+              <label class="quality-card active">
+                <input type="checkbox" name="quality" value="720p" checked>
+                <div class="quality-content">
+                  <span class="badge yellow">720p HD</span>
+                  <span class="quality-desc">Standard High Def</span>
+                </div>
+              </label>
+              <label class="quality-card">
+                <input type="checkbox" name="quality" value="480p">
+                <div class="quality-content">
+                  <span class="badge gray">480p SD</span>
+                  <span class="quality-desc">Standard Def / Risparmio</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="divider-line"></div>
+
+            <label class="input-label">Filtri Formati Avanzati</label>
+            <div class="checkbox-grid">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkHdr" checked>
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">Supporto HDR10 & Dolby Vision</span>
+              </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkExcludeCam" checked>
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">Escludi CAM / TeleSync / Screener</span>
+              </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkExclude3D" checked>
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">Escludi contenuti 3D</span>
+              </label>
+            </div>
+
+            <div class="slider-group mt-3">
+              <div class="slider-header">
+                <label for="maxResultsSlider" class="input-label">Massimo risultati per risoluzione</label>
+                <span class="slider-value" id="maxResultsValue">4 flussi</span>
+              </div>
+              <input type="range" id="maxResultsSlider" class="range-slider" min="1" max="15" value="4">
+            </div>
+
+            <div class="slider-group mt-3">
+              <div class="slider-header">
+                <label for="maxSizeSlider" class="input-label">Dimensione massima file</label>
+                <span class="slider-value" id="maxSizeValue">40 GB</span>
+              </div>
+              <input type="range" id="maxSizeSlider" class="range-slider" min="2" max="100" step="2" value="40">
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Languages & Audio -->
+        <div class="g-card">
+          <div class="g-card-header">
+            <div class="g-card-icon blue">
+              <span class="material-symbols-rounded">translate</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">5. Lingue & Tracce Audio</h3>
+              <p class="g-card-desc">Configura la priorità per audio italiano, tracce multi-lingua e sottotitoli</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <label class="input-label">Lingue Audio Preferite</label>
+            <div class="languages-chips" id="languagesChips">
+              <button type="button" class="lang-chip active" data-lang="ita">
+                <span class="lang-flag">🇮🇹</span> Italiano (ITA)
+              </button>
+              <button type="button" class="lang-chip active" data-lang="eng">
+                <span class="lang-flag">🇬🇧</span> Inglese (ENG)
+              </button>
+              <button type="button" class="lang-chip" data-lang="multi">
+                <span class="lang-flag">🌐</span> Multi-Audio
+              </button>
+              <button type="button" class="lang-chip" data-lang="spa">
+                <span class="lang-flag">🇪🇸</span> Spagnolo (SPA)
+              </button>
+              <button type="button" class="lang-chip" data-lang="fre">
+                <span class="lang-flag">🇫🇷</span> Francese (FRA)
+              </button>
+              <button type="button" class="lang-chip" data-lang="ger">
+                <span class="lang-flag">🇩🇪</span> Tedesco (DEU)
+              </button>
+            </div>
+
+            <div class="checkbox-group mt-3">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkPrioritizeIta" checked>
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">
+                  <strong>Priorità assoluta a tracce in Italiano 🇮🇹</strong>
+                  <span class="sublabel">Mostra i flussi con doppiaggio italiano in cima alla lista di riproduzione</span>
+                </span>
+              </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="checkRequireSubs">
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">
+                  <strong>Richiedi sottotitoli italiani per audio originale</strong>
+                  <span class="sublabel">Assicura che i film in inglese abbiano tracce sottotitoli in ITA</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Addon Metadata Customization -->
+        <div class="g-card">
+          <div class="g-card-header">
+            <div class="g-card-icon red">
+              <span class="material-symbols-rounded">badge</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">6. Personalizzazione Manifest</h3>
+              <p class="g-card-desc">Personalizza il nome e le informazioni dell'addon visualizzate in Stremio</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <div class="grid-2col">
+              <div class="input-group">
+                <label for="addonNameInput" class="input-label">Nome Addon</label>
+                <input type="text" id="addonNameInput" class="text-input" value="Nova Stream Addon">
+              </div>
+              <div class="input-group">
+                <label for="addonVersionInput" class="input-label">Versione</label>
+                <input type="text" id="addonVersionInput" class="text-input" value="1.0.0">
+              </div>
+            </div>
+            <div class="input-group mt-3">
+              <label for="addonDescInput" class="input-label">Descrizione Addon</label>
+              <textarea id="addonDescInput" class="text-input textarea" rows="2">Ultra-fast Google-styled Stremio Addon con tracker italiani (IlCorsaroViola, IlCorsaroNero, 1337x) e formattazione avanzata.</textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Sticky Live Preview & Install Portal -->
+      <div class="preview-column">
+
+        <!-- Install Action Card (Primary Google Card) -->
+        <div class="g-card action-card">
+          <div class="action-card-badge">
+            <span class="material-symbols-rounded">verified</span> Pronto all'installazione
+          </div>
+          <h3 class="action-card-title">Installa Addon</h3>
+          <p class="action-card-desc">La configurazione è sincronizzata in tempo reale. Clicca per aggiungere l'addon a Stremio:</p>
+
+          <div class="action-buttons-group">
+            <!-- 1. Stremio App (stremio://) -->
+            <a href="#" class="btn btn-primary btn-block btn-lg" id="btnInstallStremio">
+              <span class="material-symbols-rounded">desktop_windows</span>
+              Installa su Stremio App
+            </a>
+
+            <!-- 2. Stremio Web -->
+            <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-tonal btn-block" id="btnInstallWeb">
+              <span class="material-symbols-rounded">public</span>
+              Installa su Stremio Web
+            </a>
+
+            <!-- 3. Copy Manifest Link -->
+            <button type="button" class="btn btn-outline btn-block" id="btnCopyManifest">
+              <span class="material-symbols-rounded">content_copy</span>
+              Copia Link Manifest
+            </button>
+          </div>
+
+          <div class="manifest-url-box">
+            <span class="manifest-label">URL MANIFEST:</span>
+            <code id="manifestUrlDisplay">http://localhost:7000/manifest.json</code>
+          </div>
+        </div>
+
+        <!-- TV & Mobile QR Code Card -->
+        <div class="g-card qr-card">
+          <div class="g-card-header">
+            <div class="g-card-icon green">
+              <span class="material-symbols-rounded">qr_code_2</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">Installa su Smart TV / Mobile</h3>
+              <p class="g-card-desc">Inquadra con la fotocamera per installare su Android TV, Google TV o Fire Stick</p>
+            </div>
+          </div>
+          <div class="g-card-body text-center">
+            <div class="qr-code-wrapper" id="qrCodeContainer">
+              <!-- Dynamically generated SVG QR Code -->
+              <div id="qrPlaceholder" class="qr-loading">Generazione QR...</div>
+            </div>
+            <div class="qr-caption">
+              <span class="material-symbols-rounded">tv</span>
+              Scansiona da app fotocamera o browser TV
+            </div>
+          </div>
+        </div>
+
+        <!-- Stream Results Simulator Card (Faithful to the user's photo!) -->
+        <div class="g-card stremio-live-preview-card">
+          <div class="g-card-header">
+            <div class="g-card-icon yellow">
+              <span class="material-symbols-rounded">play_circle</span>
+            </div>
+            <div>
+              <h3 class="g-card-title">Formattazione Flussi Stremio</h3>
+              <p class="g-card-desc">Visualizzazione in tempo reale formattata esattamente come nel lettore Stremio</p>
+            </div>
+          </div>
+          <div class="g-card-body">
+            <div class="stremio-mock-container" id="stremioMockContainer">
+              <!-- Dynamically generated cards matching the user's photo -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Manifest JSON Viewer -->
+        <div class="g-card json-card">
+          <div class="json-header">
+            <div class="json-title">
+              <span class="material-symbols-rounded">code</span>
+              <span>Manifest JSON (Stremio v3)</span>
+            </div>
+            <button class="btn btn-sm btn-outline" id="btnCopyJson">
+              <span class="material-symbols-rounded">copy_all</span> Copia JSON
+            </button>
+          </div>
+          <pre class="json-code-block"><code id="manifestJsonCode">Caricamento manifest...</code></pre>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Quick Commands & Deployment Section -->
+    <section class="g-card deploy-guide-card mt-4">
+      <div class="g-card-header">
+        <div class="g-card-icon blue">
+          <span class="material-symbols-rounded">terminal</span>
+        </div>
+        <div>
+          <h3 class="g-card-title">Avvio Rapido & Comandi Terminale</h3>
+          <p class="g-card-desc">Istruzioni per eseguire e distribuire l'addon nel tuo ambiente</p>
+        </div>
+      </div>
+      <div class="g-card-body">
+        <div class="terminal-grid">
+          
+          <!-- Local Start Box -->
+          <div class="terminal-box">
+            <div class="terminal-box-header">
+              <span class="terminal-tag local">LOCALE</span>
+              <span>Esecuzione con Node.js & npm</span>
+              <button class="copy-cmd-btn" data-copy="npm install&#10;PUBLIC_BASE_URL=http://localhost:7000 npm start" title="Copia comandi">
+                <span class="material-symbols-rounded">content_copy</span>
+              </button>
+            </div>
+            <pre class="terminal-code"><code><span class="comment"># 1. Installa le dipendenze</span>
+npm install
+
+<span class="comment"># 2. Avvia il server addon (Linux / macOS / PowerShell)</span>
+PUBLIC_BASE_URL=http://localhost:7000 npm start
+
+<span class="comment"># Oppure su Windows CMD:</span>
+set PUBLIC_BASE_URL=http://localhost:7000 && npm start</code></pre>
+          </div>
+
+          <!-- Cloud Deploy Box -->
+          <div class="terminal-box">
+            <div class="terminal-box-header">
+              <span class="terminal-tag cloud">CLOUD DEPLOY</span>
+              <span>Distribuzione su Render / Railway / Docker</span>
+              <button class="copy-cmd-btn" data-copy="docker build -t stremio-addon .&#10;docker run -p 7000:7000 -e PUBLIC_BASE_URL=https://tuo-dominio.com stremio-addon" title="Copia comandi">
+                <span class="material-symbols-rounded">content_copy</span>
+              </button>
+            </div>
+            <pre class="terminal-code"><code><span class="comment"># Variabili d'ambiente richieste per Cloud:</span>
+PORT=7000
+PUBLIC_BASE_URL=https://tuo-addon.onrender.com
+
+<span class="comment"># Build & Run con Docker:</span>
+docker build -t stremio-addon .
+docker run -p 7000:7000 -e PUBLIC_BASE_URL=https://tuo-dominio.com stremio-addon</code></pre>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Help / Terminal Modal -->
+  <div class="modal-backdrop" id="helpModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-section">
+          <div class="google-dots">
+            <span class="dot blue"></span>
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <h3>Guida Configurazione & Hosting Addon</h3>
+        </div>
+        <button class="icon-button" id="btnCloseModal" aria-label="Chiudi guida">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h4>Come funziona il portale con i tracker italiani:</h4>
+        <ol class="help-list">
+          <li><strong>Tracker Italiani</strong>: abilita IlCorsaroViola, IlCorsaroNero, IlCorsaroBlu, TNTVillage, 1337x per indicizzare torrent in italiano.</li>
+          <li><strong>Provider Debrid</strong>: inserisci l'API Token di TorBox, RealDebrid, AllDebrid per sbloccare flussi in cache istantanea.</li>
+          <li><strong>Formattazione come da foto</strong>: i flussi sono generati con icone <code>🗳️</code>, <code>📁</code>, <code>💾</code>, <code>🗣️ 🇮🇹 🇬🇧</code> e <code>🔗 💾 Tracker 👥 Seeders</code>.</li>
+          <li><strong>Installazione con 1 click</strong>: clicca su "Installa su Stremio" o inquadra il QR Code con la TV.</li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnModalOk">Ho capito</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
