@@ -6,8 +6,6 @@ services:
     buildCommand: echo "Zero dependencies - no build needed"
     startCommand: node server.js
     envVars:
-      - key: PORT
-        value: 7000
       - key: PUBLIC_BASE_URL
         value: https://nova-stream-addon.onrender.com
       - key: NODE_ENV
