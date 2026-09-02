@@ -77,13 +77,16 @@ const server = http.createServer((req, res) => {
     const type = streamMatch[2];
     const id = streamMatch[3];
     
+    // Filtri Torrentio: lingua italiana prioritaria, ordinati per qualità
+    const torrentioFilters = 'language=italian|sort=qualitysize';
+
     // Supporto per account Debrid (RealDebrid, TorBox, ecc.)
-    let torrentioUrl = `https://torrentio.strem.fun/stream/${type}/${id}.json`;
+    let torrentioUrl = `https://torrentio.strem.fun/${torrentioFilters}/stream/${type}/${id}.json`;
     if (config.debridProvider && config.debridProvider !== 'none' && config.apiKey) {
-       torrentioUrl = `https://torrentio.strem.fun/${config.debridProvider}=${config.apiKey.trim()}/stream/${type}/${id}.json`;
+       torrentioUrl = `https://torrentio.strem.fun/${torrentioFilters}|${config.debridProvider}=${config.apiKey.trim()}/stream/${type}/${id}.json`;
     }
 
-    console.log(`[Redirect] Reindirizzamento a Torrentio per: ${id}`);
+    console.log(`[Redirect] → Torrentio (ITA filter) per: ${id}`);
     
     // HTTP 302 Redirect
     res.writeHead(302, { 'Location': torrentioUrl });
