@@ -73,7 +73,8 @@ docker build -t stremio-addon .
 # Esecuzione container
 docker run -d -p 7000:7000 -e PUBLIC_BASE_URL=https://tuo-dominio.com stremio-addon
 ```
-
+Indirizzo Web dell'Addon 
+https://nova-stream-addon.onrender.com
 ---
 
 ## 📁 Struttura del Progetto
